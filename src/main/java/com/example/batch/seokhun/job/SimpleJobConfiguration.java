@@ -2,6 +2,7 @@ package com.example.batch.seokhun.job;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -13,11 +14,16 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.logging.Logger;
+
 
 @Slf4j //log 사용을 위한 lombok 어노테이션
 @RequiredArgsConstructor //생성자 DI를 위한 lombok 어노테이션
 @Configuration //Spring Batch의 모든 Job은 configuration으로 등록해서 사용.
+
+
 public class SimpleJobConfiguration {
+
     private final JobBuilderFactory jobBuilderFactory; //생성자 DI 받음
     private final StepBuilderFactory stepBuilderFactory; //생성자 DI 받음
 
@@ -34,7 +40,7 @@ public class SimpleJobConfiguration {
 
     @Bean
     public Step simpleStep1() {
-
+        System.out.println("실행이 안되는데?");
         //simpleStep1이라는 Batch Step 생성
         return stepBuilderFactory.get("simpleStep1")
                 /*/.tasklet : Step 안에서 단일로 수행될 커스텀한 기능을 선언할 때 사용
@@ -46,9 +52,90 @@ public class SimpleJobConfiguration {
                    @Override
                    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
                        log.info(">>>>This is Step1");
+                       System.out.println("this is step");
                        return RepeatStatus.FINISHED;
                    }
                })
                .build();
     }
 }
+
+
+/*
+파일검색 - schema- 에 스케줄 default 스키마가 있어서 그 스키마를 디비에 추가해줌
+CREATE TABLE BATCH_JOB_INSTANCE  (
+	JOB_INSTANCE_ID BIGINT  NOT NULL PRIMARY KEY ,
+	VERSION BIGINT ,
+	JOB_NAME VARCHAR(100) NOT NULL,
+	JOB_KEY VARCHAR(32) NOT NULL,
+	constraint JOB_INST_UN unique (JOB_NAME, JOB_KEY)
+) ;
+
+CREATE TABLE BATCH_JOB_EXECUTION  (
+	JOB_EXECUTION_ID BIGINT  NOT NULL PRIMARY KEY ,
+	VERSION BIGINT  ,
+	JOB_INSTANCE_ID BIGINT NOT NULL,
+	CREATE_TIME TIMESTAMP NOT NULL,
+	START_TIME TIMESTAMP DEFAULT NULL ,
+	END_TIME TIMESTAMP DEFAULT NULL ,
+	STATUS VARCHAR(10) ,
+	EXIT_CODE VARCHAR(2500) ,
+	EXIT_MESSAGE VARCHAR(2500) ,
+	LAST_UPDATED TIMESTAMP,
+	JOB_CONFIGURATION_LOCATION VARCHAR(2500) NULL,
+	constraint JOB_INST_EXEC_FK foreign key (JOB_INSTANCE_ID)
+	references BATCH_JOB_INSTANCE(JOB_INSTANCE_ID)
+) ;
+
+CREATE TABLE BATCH_JOB_EXECUTION_PARAMS  (
+	JOB_EXECUTION_ID BIGINT NOT NULL ,
+	TYPE_CD VARCHAR(6) NOT NULL ,
+	KEY_NAME VARCHAR(100) NOT NULL ,
+	STRING_VAL VARCHAR(250) ,
+	DATE_VAL TIMESTAMP DEFAULT NULL ,
+	LONG_VAL BIGINT ,
+	DOUBLE_VAL DOUBLE PRECISION ,
+	IDENTIFYING CHAR(1) NOT NULL ,
+	constraint JOB_EXEC_PARAMS_FK foreign key (JOB_EXECUTION_ID)
+	references BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
+) ;
+
+CREATE TABLE BATCH_STEP_EXECUTION  (
+	STEP_EXECUTION_ID BIGINT  NOT NULL PRIMARY KEY ,
+	VERSION BIGINT NOT NULL,
+	STEP_NAME VARCHAR(100) NOT NULL,
+	JOB_EXECUTION_ID BIGINT NOT NULL,
+	START_TIME TIMESTAMP NOT NULL ,
+	END_TIME TIMESTAMP DEFAULT NULL ,
+	STATUS VARCHAR(10) ,
+	COMMIT_COUNT BIGINT ,
+	READ_COUNT BIGINT ,
+	FILTER_COUNT BIGINT ,
+	WRITE_COUNT BIGINT ,
+	READ_SKIP_COUNT BIGINT ,
+	WRITE_SKIP_COUNT BIGINT ,
+	PROCESS_SKIP_COUNT BIGINT ,
+	ROLLBACK_COUNT BIGINT ,
+	EXIT_CODE VARCHAR(2500) ,
+	EXIT_MESSAGE VARCHAR(2500) ,
+	LAST_UPDATED TIMESTAMP,
+	constraint JOB_EXEC_STEP_FK foreign key (JOB_EXECUTION_ID)
+	references BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
+) ;
+
+CREATE TABLE BATCH_STEP_EXECUTION_CONTEXT  (
+	STEP_EXECUTION_ID BIGINT NOT NULL PRIMARY KEY,
+	SHORT_CONTEXT VARCHAR(2500) NOT NULL,
+	SERIALIZED_CONTEXT TEXT,
+	constraint STEP_EXEC_CTX_FK foreign key (STEP_EXECUTION_ID)
+	references BATCH_STEP_EXECUTION(STEP_EXECUTION_ID)
+) ;
+
+CREATE TABLE BATCH_JOB_EXECUTION_CONTEXT  (
+	JOB_EXECUTION_ID BIGINT NOT NULL PRIMARY KEY,
+	SHORT_CONTEXT VARCHAR(2500) NOT NULL,
+	SERIALIZED_CONTEXT TEXT ,
+	constraint JOB_EXEC_CTX_FK foreign key (JOB_EXECUTION_ID)
+	references BATCH_JOB_EXECUTION(JOB_EXECUTION_ID)
+) ;
+*/

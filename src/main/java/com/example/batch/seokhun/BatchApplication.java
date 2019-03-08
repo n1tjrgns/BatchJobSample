@@ -7,10 +7,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @EnableBatchProcessing //배치기능 활성화 어노테이션 - 스프링 배치 기능을 사용하기 위한 필수 선언
 @SpringBootApplication
-public class SeokhunApplication {
+public class BatchApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SeokhunApplication.class, args);
+        SpringApplication.run(BatchApplication.class, args);
     }
 
 }
+
