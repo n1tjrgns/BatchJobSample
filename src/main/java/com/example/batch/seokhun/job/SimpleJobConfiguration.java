@@ -40,8 +40,11 @@ public class SimpleJobConfiguration {
         //job = 하나의 배치 작업 단위
         return jobBuilderFactory.get("simpleJob")
                 .start(simpleStep1(null))
+                .next(simpleStep2(null))
                 .build();
     }
+
+
 
 
     @Bean
@@ -58,13 +61,25 @@ public class SimpleJobConfiguration {
                     //tasklet 은 execute 메소드를 구현, 비즈니스 로직을 실행하는 코드를 작성, 리턴값으로 RepeatStatus.Finished를 사용
                     @Override
                     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-                        log.info(">>>>This is Step1");
+                        throw new IllegalArgumentException("Step1에서 실패합니다");
+                    }
+                })
+                .build();
+    }
+
+    @Bean
+    @JobScope
+    public Step simpleStep2(@Value("#{jobParameters[requestDate]}") String requestDate) {
+        return stepBuilderFactory.get("simpleStep2")
+                .tasklet(new Tasklet() {
+                    @Override
+                    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+                        log.info(">>>>This is Step2");
                         log.info(">>>>requestDate = {}", requestDate);
                         log.info("DB 연결 " + jdbc);
                         return RepeatStatus.FINISHED;
                     }
-                })
-                .build();
+                }).build();
     }
 }
 
