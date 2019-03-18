@@ -61,7 +61,11 @@ public class SimpleJobConfiguration {
                     //tasklet 은 execute 메소드를 구현, 비즈니스 로직을 실행하는 코드를 작성, 리턴값으로 RepeatStatus.Finished를 사용
                     @Override
                     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-                        throw new IllegalArgumentException("Step1에서 실패합니다");
+                        log.info(">>>>This is Step1");
+                        log.info(">>>>requestDate = {}", requestDate);
+                        log.info("DB 연결 " + jdbc);
+                        return RepeatStatus.FINISHED;
+                        //throw new IllegalArgumentException("Step1에서 실패합니다");
                     }
                 })
                 .build();
