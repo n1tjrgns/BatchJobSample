@@ -7,6 +7,8 @@ spring:
     job:
       names: ${job.name:NONE}
 
+logging:
+  level: debug
 ---
 spring:
   profiles: mysql
